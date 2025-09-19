@@ -1,0 +1,238 @@
+/* --- Reset & Basic Styles --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #F8E0C1;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    overflow-x: hidden;
+}
+
+/* --- Glassmorphism Effect --- */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* --- Main Layout --- */
+.container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    gap: 2rem;
+}
+
+.left-panel, .right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    min-width: 300px;
+}
+
+/* --- Left Panel: Upload & Predict --- */
+.upload-box {
+    width: 100%;
+    max-width: 350px;
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+    color: #444;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    /* PERBAIKAN: Efek Glassmorphism diterapkan di sini */
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.upload-box:hover {
+    transform: scale(1.02);
+}
+
+.folder-icon {
+    font-size: 4rem;
+}
+
+#upload-placeholder p {
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.image-preview {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#predict-btn, #result-box {
+    width: 100%;
+    max-width: 350px;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    text-align: center;
+    border: none;
+}
+
+#predict-btn {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    /* PERBAIKAN: Membuat tombol lebih bulat */
+    border-radius: 50px; 
+}
+
+#predict-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-3px);
+}
+
+#result-box {
+    /* PERBAIKAN: Sembunyikan result box pada awalnya */
+    display: none;
+}
+
+
+/* --- Right Panel: Gallery & Title --- */
+.right-panel {
+    position: relative;
+    min-height: 500px;
+}
+
+.image-gallery {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+.gallery-img {
+    position: absolute;
+    width: 200px;
+    height: auto;
+    /* PERBAIKAN: Menggunakan filter drop-shadow untuk bayangan yang natural pada PNG */
+    filter: drop-shadow(0 15px 20px rgba(0, 0, 0, 0.25));
+    animation: float 6s ease-in-out infinite;
+}
+
+.img-1 { /* Orange */
+    top: 0;
+    right: 0;
+    transform: rotate(20deg);
+    animation-delay: 0s;
+}
+
+.img-2 { /* Capsicum */
+    top: 20%;
+    left: 10%;
+    transform: translateY(-50%) rotate(-10deg);
+    z-index: 2; /* Pastikan gambar ini di atas yang lain jika perlu */
+    width: 250px;
+    animation-delay: 2s;
+}
+
+.img-3 { /* Tomato */
+    bottom: 0;
+    right: 5%;
+    transform: rotate(5deg);
+    animation-delay: 4s;
+}
+
+.title-text {
+    position: absolute;
+    bottom: 20px;
+    font-family: 'Monsieur La Doulaise', cursive;
+    font-size: 4rem;
+    color: #4a2e0a;
+    text-align: center;
+    width: 100%;
+    /* PERBAIKAN: Menghapus border putih dan hanya menyisakan drop shadow */
+    text-shadow: 4px 4px 8px rgba(0,0,0,0.4);
+    /* PERBAIKAN: Memastikan teks berada di depan gambar */
+    z-index: 10;
+    pointer-events: none; /* Agar teks tidak bisa di-klik/interferensi */
+}
+
+/* --- Floating Animation --- */
+@keyframes float {
+    0% { transform: translateY(0px) rotate(var(--initial-rotate, 0deg)); }
+    50% { transform: translateY(-20px) rotate(var(--initial-rotate, 0deg)); }
+    100% { transform: translateY(0px) rotate(var(--initial-rotate, 0deg)); }
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .right-panel {
+        margin-top: 4rem;
+        min-height: 400px;
+    }
+    .gallery-img {
+        width: 180px;
+    }
+    .img-2 {
+        width: 220px;
+    }
+    .title-text {
+        font-size: 3.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        padding: 1rem;
+    }
+    .upload-box {
+        width: 300px;
+        height: 300px;
+    }
+    #predict-btn, #result-box {
+        max-width: 300px;
+    }
+    .gallery-img {
+        width: 150px;
+    }
+    .img-2 {
+        width: 180px;
+    }
+    .title-text {
+        font-size: 2.8rem;
+        position: relative;
+        margin-top: 2rem;
+    }
+    .image-gallery {
+        min-height: 300px;
+    }
+}

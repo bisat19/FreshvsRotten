@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freshness Checker</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Monsieur+La+Doulaise&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+</head>
+<body>
+
+    <main class="container">
+        <section class="left-panel">
+            <label for="image-upload-input" class="upload-box" id="upload-box">
+                <img src="#" alt="Image preview" id="image-preview" class="image-preview">
+                <div id="upload-placeholder">
+                    <span class="folder-icon">📁</span>
+                    <p>drop your image here</p>
+                </div>
+            </label>
+            <input type="file" id="image-upload-input" accept="image/*" hidden>
+            
+            <button id="predict-btn">Predict</button>
+            <div id="result-box">{expected result}</div>
+        </section>
+
+        <section class="right-panel">
+            <div class="image-gallery">
+                <img src="images/orange_remove.png" alt="Oranges in a bag" class="gallery-img img-1">
+                <img src="images/capsicum_remove.png" alt="Capsicums in a bag" class="gallery-img img-2">
+                <img src="images/tomato_remove.png" alt="Tomatoes in a bag" class="gallery-img img-3">
+            </div>
+            <h1 class="title-text">Check your Freshness</h1>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
