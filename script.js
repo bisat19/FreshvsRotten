@@ -1,90 +1,151 @@
-// --- Ambil Elemen DOM ---
-const uploadBox = document.getElementById('upload-box');
-const imageUploadInput = document.getElementById('image-upload-input');
-const imagePreview = document.getElementById('image-preview');
-const uploadPlaceholder = document.getElementById('upload-placeholder');
-const predictBtn = document.getElementById('predict-btn');
-const resultBox = document.getElementById('result-box');
+/**
+ * Freshness Checker Script
+ * Handles model loading, image preview, and prediction logic for the fruit/vegetable freshness checker app.
+ */
 
-// --- Variabel Global untuk Model ---
+// --- KONSTANTA & ELEMEN DOM ---
+
+const CLASS_NAMES = [
+    'fresh_apple', 'fresh_banana', 'fresh_bitter_gourd',
+    'fresh_capsicum', 'fresh_orange', 'fresh_tomato',
+    'stale_apple', 'stale_banana', 'stale_bitter_gourd',
+    'stale_capsicum', 'stale_orange', 'stale_tomato'
+];
+
+const UI = {
+    uploadBox: document.getElementById('upload-box'),
+    imageUploadInput: document.getElementById('image-upload-input'),
+    imagePreview: document.getElementById('image-preview'),
+    uploadPlaceholder: document.getElementById('upload-placeholder'),
+    predictBtn: document.getElementById('predict-btn'),
+    resultBox: document.getElementById('result-box')
+};
+
 let model;
 
-// --- Fungsi untuk Memuat Model TF.js ---
+// --- FUNGSI-FUNGSI UTAMA ---
+
+/**
+ * Memuat model TensorFlow.js dan memperbarui UI.
+ */
 async function loadModel() {
     try {
-        const modelURL = './model/model.json'; 
+        const modelURL = './model_fixed/model.json';
         model = await tf.loadLayersModel(modelURL);
         console.log("Model loaded successfully!");
-        
-        predictBtn.disabled = false;
-        predictBtn.textContent = 'Predict';
+        UI.predictBtn.disabled = false;
+        UI.predictBtn.textContent = 'Predict';
     } catch (error) {
         console.error("Error loading model: ", error);
-        resultBox.textContent = 'Failed to load model.';
-        resultBox.style.display = 'block'; // Tampilkan jika ada error
+        UI.resultBox.textContent = 'Failed to load model.';
+        UI.resultBox.style.display = 'block';
     }
 }
 
-// Inisialisasi
-predictBtn.disabled = true;
-predictBtn.textContent = 'Loading Model...';
-loadModel();
+/**
+ * Menampilkan pratinjau gambar yang dipilih oleh pengguna.
+ * @param {File} file - File gambar yang di-upload.
+ */
+function displayImagePreview(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        UI.imagePreview.src = e.target.result;
+        UI.imagePreview.style.display = 'block';
+        UI.uploadPlaceholder.style.display = 'none';
+        UI.resultBox.style.display = 'none';
+        UI.resultBox.textContent = '';
+    };
+    reader.readAsDataURL(file);
+}
 
+/**
+ * Memformat nama kelas dari 'snake_case' menjadi 'Title Case'.
+ * @param {string} className - Nama kelas dari model.
+ * @returns {string} Nama kelas yang sudah diformat.
+ */
+const formatClassName = (className) =>
+    className
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
-// --- Event Listener untuk Upload Gambar ---
-uploadBox.addEventListener('click', () => imageUploadInput.click());
-
-imageUploadInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            imagePreview.src = e.target.result;
-            imagePreview.style.display = 'block';
-            uploadPlaceholder.style.display = 'none';
-            // PERBAIKAN: Sembunyikan result box saat gambar baru di-upload
-            resultBox.style.display = 'none'; 
-            resultBox.textContent = ''; // Kosongkan isinya
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-
-// --- Event Listener untuk Tombol Predict ---
-predictBtn.addEventListener('click', async () => {
-    if (!model || !imagePreview.src || imagePreview.src.endsWith('#')) {
-        resultBox.textContent = 'Please upload an image first.';
-        // PERBAIKAN: Tampilkan result box jika ada pesan error
-        resultBox.style.display = 'block'; 
+/**
+ * Menjalankan proses prediksi pada gambar.
+ */
+async function handlePrediction() {
+    if (!model || !UI.imagePreview.src || UI.imagePreview.src.endsWith('#')) {
+        UI.resultBox.textContent = 'Please upload an image first.';
+        UI.resultBox.style.display = 'block';
         return;
     }
-    
-    // PERBAIKAN: Tampilkan result box saat proses analisa dimulai
-    resultBox.style.display = 'block'; 
-    resultBox.textContent = 'Analyzing...';
 
+    let tensor;
     try {
-        const tensor = tf.browser.fromPixels(imagePreview)
-            .resizeNearestNeighbor([224, 224]) 
-            .toFloat()
-            .div(tf.scalar(255.0))
-            .expandDims();
+        UI.predictBtn.disabled = true;
+        UI.resultBox.style.display = 'block';
+        UI.resultBox.textContent = 'Analyzing...';
+
+        tensor = tf.tidy(() => {
+            const imgTensor = tf.browser.fromPixels(UI.imagePreview)
+                .resizeNearestNeighbor([224, 224])
+                .toFloat();
+            
+            // Menggunakan preprocessing untuk model VGG/ResNet
+            const meanPixel = tf.tensor1d([103.939, 116.779, 123.68]);
+            return imgTensor.reverse(-1).sub(meanPixel).expandDims();
+        });
 
         const predictions = await model.predict(tensor).data();
+        const maxPrediction = Math.max(...predictions);
+        const predictedIndex = predictions.indexOf(maxPrediction);
         
-        const classNames = ['Fresh', 'Rotten', 'Medium']; 
+        const resultRaw = CLASS_NAMES[predictedIndex];
+        const confidence = (maxPrediction * 100).toFixed(2);
+        const resultFormatted = formatClassName(resultRaw);
         
-        const predictedIndex = predictions.indexOf(Math.max(...predictions));
-        const result = classNames[predictedIndex];
-        const confidence = (Math.max(...predictions) * 100).toFixed(2);
-        
-        resultBox.textContent = `Result: ${result} (${confidence}%)`;
-
-        tensor.dispose();
+        UI.resultBox.textContent = `Result: ${resultFormatted} (${confidence}%)`;
 
     } catch (error) {
         console.error("Error during prediction: ", error);
-        resultBox.textContent = 'Error predicting the image.';
+        UI.resultBox.textContent = 'Error predicting the image.';
+    } finally {
+        if (tensor) {
+            tensor.dispose();
+        }
+        UI.predictBtn.disabled = false;
     }
-});
+}
+
+// --- INISIALISASI & EVENT LISTENERS ---
+
+/**
+ * Menginisialisasi aplikasi dengan mengatur listener dan memuat model.
+ */
+function initializeApp() {
+    UI.predictBtn.disabled = true;
+    UI.predictBtn.textContent = 'Loading Model...';
+    
+    UI.uploadBox.addEventListener('click', () => UI.imageUploadInput.click());
+
+    // --- TAMBAHKAN KODE INI ---
+    // Me-reset nilai input setiap kali diklik.
+    // Ini memastikan event 'change' akan selalu terpicu, bahkan untuk file yang sama.
+    UI.imageUploadInput.addEventListener('click', (event) => {
+        event.target.value = null;
+    });
+    // --- AKHIR DARI KODE TAMBAHAN ---
+
+    UI.imageUploadInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            displayImagePreview(file);
+        }
+    });
+
+    UI.predictBtn.addEventListener('click', handlePrediction);
+
+    loadModel();
+}
+
+// Jalankan aplikasi
+initializeApp();
